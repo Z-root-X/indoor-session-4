@@ -1,0 +1,226 @@
+/* ---
+   ASSDI Indoor Olympiad - style.css
+   Version: 6.0 (Aesthetic & Alignment Update)
+--- */
+
+/* --- ✅ Official Brand Color Palette & Fonts --- */
+:root {
+    --brand-light-green: #88C03D; /* Primary Accent */
+    --brand-dark-green: #2D8B5E;  /* Secondary Accent */
+    --brand-orange: #E6912E;      /* Special Highlight */
+    
+    --bg-dark: #1a1a1a;
+    --bg-card: #252525;
+    --border-color: rgba(136, 192, 61, 0.25);
+    
+    --text-bright: #ffffff;
+    --text-light: #e0e0e0;
+    --text-muted: #a0a0a0;
+
+    --font-primary: 'Hind Siliguri', sans-serif;
+    --font-secondary: 'Poppins', sans-serif; /* For English Text */
+}
+
+/* --- ✅ Loading Your Custom Font --- */
+@font-face {
+    font-family: 'Hind Siliguri';
+    src: url('fonts/HindSiliguri-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.landing-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* --- ✅ REDESIGNED: Hero Section --- */
+.hero-section {
+    padding: 60px 20px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.hero-logo {
+    max-width: 250px;
+    margin-bottom: 1.5rem;
+    /* ✅ নতুন: লোগোর জন্য গ্লো ইফেক্ট */
+    filter: drop-shadow(0 0 15px rgba(136, 192, 61, 0.5));
+}
+
+.hero-title {
+    font-size: 3.2rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 0.5rem;
+}
+
+.hero-text {
+    font-size: 1.2rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+    font-family: var(--font-secondary);
+}
+
+.registration-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto 2rem auto;
+}
+
+.qr-registration-box { display: flex; align-items: center; gap: 15px; }
+.qr-code-img { width: 80px; height: 80px; border-radius: 8px; border: 2px solid var(--brand-light-green); }
+.qr-info { text-align: left; }
+.qr-title { font-size: 1.2rem; font-weight: 600; color: var(--text-bright); }
+.qr-deadline { font-size: 0.9rem; color: var(--brand-orange); }
+
+.hero-btn-link {
+    background-color: var(--brand-dark-green);
+    border: 1px solid var(--brand-light-green);
+    color: var(--text-light);
+    font-size: 1rem; padding: 10px 20px; border-radius: 8px; font-weight: 600;
+    transition: all 0.3s;
+}
+.hero-btn-link:hover { background-color: var(--brand-light-green); color: var(--bg-dark); }
+
+.hero-btn-main {
+    background: var(--brand-light-green);
+    color: #000; border: none; font-weight: 700; font-size: 1.1rem;
+    padding: 0.8rem 2.5rem; border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(136, 192, 61, 0.3);
+}
+.hero-btn-main:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(136, 192, 61, 0.4);
+}
+
+/* --- ✅ REDESIGNED: Section Headings & Filters --- */
+.section-heading {
+    font-size: 2.8rem; font-weight: 700; color: var(--text-bright);
+    position: relative; display: inline-block; padding-bottom: 10px;
+    /* ✅ পরিবর্তিত: শিরোনামকে সেন্টারে আনার জন্য text-center ক্লাস ব্যবহার করা হয়েছে */
+}
+.section-heading::after {
+    content: ''; position: absolute; bottom: 0; left: 50%;
+    transform: translateX(-50%); width: 70px; height: 4px;
+    background-color: var(--brand-light-green); border-radius: 2px;
+}
+.section-title-container { text-align: center; margin-top: 5rem; margin-bottom: 2.5rem; }
+.section-subtitle { color: var(--text-muted); font-family: var(--font-secondary); }
+
+.filter-controls { display: flex; justify-content: center; gap: 10px; padding: 20px 0; flex-wrap: wrap; }
+.filter-btn {
+    background: var(--bg-card); color: var(--text-light);
+    border: 1px solid var(--border-color); border-radius: 50px;
+    padding: 10px 25px; font-weight: 600; transition: all 0.3s ease;
+}
+.filter-btn:hover { background: var(--brand-dark-green); border-color: var(--brand-light-green); color: var(--text-bright); }
+.filter-btn.active {
+    background-color: var(--brand-light-green); color: var(--bg-dark); 
+    border-color: var(--brand-light-green);
+    box-shadow: 0 0 15px rgba(136, 192, 61, 0.4);
+}
+
+/* --- ✅ REDESIGNED: Professional Timeline --- */
+.timeline-section { padding: 50px 15px !important; }
+.timeline-container { position: relative; max-width: 1000px; margin: 0 auto; }
+.timeline-container::after {
+    content: ''; position: absolute; width: 3px;
+    background: var(--border-color); top: 0; bottom: 0; left: 50%;
+    margin-left: -1.5px;
+}
+.timeline-item { padding: 10px 40px; position: relative; width: 50%; }
+.timeline-item.left { left: 0; }
+.timeline-item.right { left: 50%; }
+.timeline-item::after {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    right: -10px; background-color: var(--bg-dark);
+    border: 4px solid var(--brand-light-green); top: 25px;
+    border-radius: 50%; z-index: 1;
+    transition: all 0.3s ease;
+}
+.timeline-item.right::after { left: -10px; }
+.timeline-content {
+    padding: 20px; background: var(--bg-card); position: relative;
+    border-radius: 8px; border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+.timeline-item:hover .timeline-content { border-color: var(--brand-light-green); transform: scale(1.02); }
+.timeline-item:hover::after { transform: scale(1.2); }
+.event-time, .event-category { font-family: var(--font-secondary); }
+.event-time { color: var(--brand-orange); font-weight: 700; font-size: 0.9rem; }
+.event-title { font-size: 1.5rem; color: var(--text-bright); font-weight: 700; }
+.event-category { color: var(--text-light); }
+.break .timeline-content { border-left: 5px solid var(--brand-orange); }
+.break::after { border-color: var(--brand-orange); }
+
+/* --- ✅ REDESIGNED: Branded Cards --- */
+.rules-display-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+#current-event-name { color: var(--brand-light-green); font-size: 2rem; font-weight: 700; }
+.showcase-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    padding: 30px 15px; gap: 25px;
+}
+.participant-showcase-card {
+    background-color: var(--bg-card); border-radius: 12px; padding: 20px;
+    display: flex; flex-direction: column; text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+.participant-showcase-card:hover {
+    transform: translateY(-8px); border-color: var(--brand-light-green);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.participant-showcase-card .event-tag {
+    font-size: 0.8rem; font-weight: 600; color: var(--bg-dark);
+    background-color: var(--brand-light-green);
+    padding: 4px 12px; border-radius: 50px;
+    align-self: center; margin-bottom: 15px;
+}
+.participant-showcase-card .name { font-size: 1.4rem; font-weight: 700; color: var(--text-bright); margin-bottom: 5px; }
+/* ✅ নতুন: ব্যাচ এবং রোলের জন্য ইংরেজি ফন্ট নির্দিষ্ট করা হয়েছে */
+.participant-showcase-card .batch, .participant-showcase-card .roll {
+    font-family: var(--font-secondary);
+}
+.participant-showcase-card .batch { font-size: 1.1rem; color: var(--brand-orange); font-weight: 500; margin-bottom: 10px; }
+.participant-showcase-card .roll { font-size: 0.9rem; color: var(--text-muted); }
+
+footer { border-top: 1px solid var(--border-color); color: var(--text-muted); }
+.loading-message { margin-top: 50px; }
+
+/* --- Filtering & Animation --- */
+.showcase-grid .filterDiv { display: none; animation: fadeIn 0.5s; }
+.showcase-grid .filterDiv.visible { display: flex; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- Responsive Adjustments --- */
+@media screen and (max-width: 767px) {
+    .hero-title { font-size: 2.5rem; }
+    .section-heading { font-size: 2.2rem; }
+    .timeline-container::after { left: 15px; }
+    .timeline-item { width: 100%; padding-left: 50px; padding-right: 15px; }
+    .timeline-item.right { left: 0%; }
+    .timeline-item.left::after, .timeline-item.right::after { left: 6px; }
+}
