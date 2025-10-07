@@ -1,191 +1,204 @@
-// indoor_event_live_score-main/landing.js
-// Version 5.0 - Final Brand Integration & Full Functionality
+/* ---
+   ASSDI Indoor Olympiad - landing.js
+   Version: 11.0 (Final Complete Code with Winner Badges)
+--- */
 
-// 🎯 গুরুত্বপূর্ণ কনফিগারেশন: এখানে আপনার নতুন Google Apps Script URL টি পেস্ট করতে হবে।
-const API_URL = "https://script.google.com/macros/s/AKfycbxh2zabw1i80ieipn8JMPSwLswB1tbt2yy7TuqUUljBmfrTMcXc-v6MGpZzaY7wqKFyMg/exec"; // এই URL টি পরবর্তী ধাপে পাওয়া যাবে।
-const GOOGLE_FORM_URL = "https://forms.gle/ouLjnUXDNcteXdRg6"; 
-const SUBMISSION_DEADLINE = "০৬ অক্টোবর, রাত ৭ টা"; 
+// --- Configuration ---
+const API_URL = "https://script.google.com/macros/s/AKfycbxh2zabw1i80ieipn8JMPSwLswB1tbt2yy7TuqUUljBmfrTMcXc-v6MGpZzaY7wqKFyMg/exec";
+const PARTICIPANT_API_URL = API_URL;
+const SCORE_API_URL = `${API_URL}?sheet=scores`;
 
-// --- শিটের কলামের নামের সাথে মিল রাখা হয়েছে ---
-const SHEET_HEADERS = {
-    ROLL: 'Roll',
-    NAME: 'Name',
-    EVENT_NAME: 'EventName',
-    BATCH_NAME: 'BatchName'
-};
+// --- Event Schedule Data (in 24-hour format) for Dynamic Timeline ---
+const EVENT_SCHEDULE = [
+    { start: "09:00", end: "09:30", title: "রিপোর্টিং ও আসন গ্রহণ", category: "স্থান: আবাসিক", type: "event" },
+    { start: "09:30", end: "09:45", title: "উদ্বোধনী অনুষ্ঠান", category: "পবিত্র কুরআন তিলাওয়াত ও স্বাগত বক্তব্য", type: "event" },
+    { start: "09:45", end: "12:45", title: "ইসলামী সংস্কৃতি প্রতিযোগিতা", category: "ক্বেরাত, আযান, ইসলামিক নাশিদ", type: "event" },
+    { start: "12:45", end: "13:15", title: "বিরতি ও যোহরের নামাজ", category: "জামাত দুপুর ১:০০ টায়", type: "break" },
+    { start: "13:15", end: "14:15", title: "কমিউনিকেশন গেম", category: "স্থান: আবাসিক", type: "event" },
+    { start: "14:15", end: "15:00", title: "একাডেমিক কুইজ", category: "স্থান: ল্যাব ২", type: "event" },
+    { start: "15:00", end: "15:45", title: "মধ্যাহ্নভোজ", category: "বিরতি", type: "break" },
+    { start: "15:45", end: "16:15", title: "রোল প্লে", category: "স্থান: আবাসিক", type: "event" },
+    { start: "16:40", end: "17:50", title: "পুরস্কার বিতরণী অনুষ্ঠান", category: "সমাপনী অনুষ্ঠান", type: "event" }
+];
 
-// --- শিটের বাংলা ইভেন্টের নামকে ইংরেজি ফিল্টার ক্লাসের সাথে ম্যাপ করা হয়েছে ---
+// --- Mapping & Rules Data ---
 const EVENT_NAME_TO_FILTER = {
-    'কুরআন তিলাওয়াত': 'kherat',
-    'ক্বেরাত (কুরআন তিলাওয়াত)': 'kherat',
-    'আযান': 'azaan',
-    'নাশিদ': 'nasheed',
-    'ইসলামি সংগীত': 'nasheed',
-    'রোল প্লে / নাটিকা': 'roleplay',
-    'রোল প্লে': 'roleplay',
-    'একাডেমিক কুইজ': 'quiz',
+    'কুরআন তিলাওয়াত': 'kherat', 'ক্বেরাত (কুরআন তিলাওয়াত)': 'kherat', 'আযান': 'azaan',
+    'নাশিদ': 'nasheed', 'ইসলামিক নাশিদ': 'nasheed', 'ইসলামি সংগীত': 'nasheed',
+    'রোল প্লে / নাটিকা': 'roleplay', 'রোল প্লে': 'roleplay', 'একাডেমিক কুইজ': 'quiz',
     'কমিউনিকেশন গেম': 'communication',
 };
-
-// --- সম্পূর্ণ নিয়মাবলী (আপনার PDF থেকে নেওয়া) ---
 const EVENT_RULES = {
-    "all": { 
-        name: "পূর্ণাঙ্গ নিয়মাবলী ও স্কোরিং", 
-        rules: "সকল ইভেন্ট শেষে যে ব্যাচের সর্বমোট পয়েন্ট সবচেয়ে বেশি হবে, সেই ব্যাচকে \"চ্যাম্পিয়ন\" হিসেবে ঘোষণা করা হবে। প্রত্যেক অংশগ্রহণকারী নিজের ব্যাচের জন্য ২ পয়েন্ট করে পাবেন।", 
-        players: "একজন প্রতিযোগী সর্বোচ্চ ৩টি ইভেন্টে অংশগ্রহণ করতে পারবে।", 
-        submissionOpen: true 
-    },
-    "kherat": { 
-        name: "ক্বেরাত (কুরআন তিলাওয়াত)", 
-        rules: "এটি একটি একক পরিবেশনা। প্রত্যেক ব্যাচ থেকে কমপক্ষে ১ জন আলেম এবং ১ জন জেনারেল ব্যাকগ্রাউন্ডের প্রতিযোগী অংশ নেবেন। প্রত্যেকে তিলাওয়াতের জন্য সর্বোচ্চ ৩ মিনিট সময় পাবেন।", 
-        players: "প্রতি ব্যাচ থেকে ২ জন (১জন জেনারেল থাকা বাধ্যতামূলক)।", 
-        submissionOpen: true 
-    },
-    "azaan": { 
-        name: "আযান", 
-        rules: "এটি একটি একক পরিবেশনা। প্রত্যেক ব্যাচ থেকে ২ জন প্রতিযোগী অংশ নেবেন। প্রত্যেক প্রতিযোগী একটি পূর্ণাঙ্গ আযান দেবেন।", 
-        players: "প্রতি ব্যাচ থেকে ২ জন।", 
-        submissionOpen: true 
-    },
-    "nasheed": { 
-        name: "ইসলামিক নাশিদ", 
-        rules: "এটি একটি একক পরিবেশনা। প্রতি ব্যাচ থেকে ২ জন প্রতিযোগী অংশ নেবেন। সর্বোচ্চ সময় ৩ মিনিট।", 
-        players: "প্রতি ব্যাচ থেকে ২ জন।", 
-        submissionOpen: true 
-    },
-    "roleplay": { 
-        name: "রোল প্লে (তাৎক্ষণিক অভিনয়)", 
-        rules: "বিষয়বস্তু তাৎক্ষণিকভাবে দেওয়া হবে (যেমন: ট্রেনের হকার, ক্লাসের শিক্ষক ইত্যাদি)। সর্বোচ্চ সময় ৩ মিনিট।", 
-        players: "প্রতি ব্যাচ থেকে ২ জন।", 
-        submissionOpen: true 
-    },
-    "quiz": { 
-        name: "একাডেমিক কুইজ", 
-        rules: "বিষয়বস্তু: এমএস এক্সেল, এমএস ওয়ার্ড, ডিজিটাল মার্কেটিং, এআই টুলস, ইংরেজি এবং অন্যান্য বেসিক বিষয়ে Kahoot প্ল্যাটফর্মে পরীক্ষা হবে।", 
-        players: "প্রতি ব্যাচ থেকে ৫ জন।", 
-        submissionOpen: true 
-    },
-    "communication": { 
-        name: "কমিউনিকেশন গেম (অঙ্গভঙ্গি)", 
-        rules: "প্রতিটি দলে ১১ জন খেলোয়াড় থাকবেন। প্রথম খেলোয়াড়কে একটি অঙ্গভঙ্গি দেখানো হবে, যা তিনি কোনো শব্দ ছাড়া পরবর্তী খেলোয়াড়কে বোঝাবেন। এই প্রক্রিয়াটি দলের শেষ খেলোয়াড় পর্যন্ত চলবে।", 
-        players: "প্রতি ব্যাচ থেকে ১১ জন।", 
-        submissionOpen: true 
-    },
+    "all": { name: "পূর্ণাঙ্গ নিয়মাবলী", rules: "সকল ইভেন্ট শেষে যে ব্যাচের সর্বমোট পয়েন্ট সবচেয়ে বেশি হবে, সেই ব্যাচকে \"চ্যাম্পিয়ন\" হিসেবে ঘোষণা করা হবে।", players: "একজন প্রতিযোগী সর্বোচ্চ ৩টি ইভেন্টে অংশ নিতে পারবে।" },
+    "kherat": { name: "ক্বেরাত (কুরআন তিলাওয়াত)", rules: "এটি একটি একক পরিবেশনা। প্রত্যেক ব্যাচ থেকে কমপক্ষে ১ জন আলেম এবং ১ জন জেনারেল ব্যাকগ্রাউন্ডের প্রতিযোগী অংশ নেবেন। সর্বোচ্চ ৩ মিনিট সময় পাবেন।", players: "প্রতি ব্যাচ থেকে ২ জন।" },
+    "azaan": { name: "আযান", rules: "এটি একটি একক পরিবেশনা। প্রত্যেক ব্যাচ থেকে ২ জন প্রতিযোগী অংশ নেবেন।", players: "প্রতি ব্যাচ থেকে ২ জন।" },
+    "nasheed": { name: "ইসলামিক নাশিদ", rules: "এটি একটি একক পরিবেশনা। প্রতি ব্যাচ থেকে ২ জন প্রতিযোগী অংশ নেবেন। সর্বোচ্চ সময় ৩ মিনিট।", players: "প্রতি ব্যাচ থেকে ২ জন।" },
+    "roleplay": { name: "রোল প্লে", rules: "বিষয়বস্তু তাৎক্ষণিকভাবে দেওয়া হবে। সর্বোচ্চ সময় ৩ মিনিট।", players: "প্রতি ব্যাচ থেকে ২ জন।" },
+    "quiz": { name: "একাডেমিক কুইজ", rules: "Kahoot প্ল্যাটফর্মে এমএস এক্সেল, ওয়ার্ড, ডিজিটাল মার্কেটিং ইত্যাদি বিষয়ে পরীক্ষা হবে।", players: "প্রতি ব্যাচ থেকে ৫ জন।" },
+    "communication": { name: "কমিউনিকেশন গেম", rules: "প্রতিটি দলে ১১ জন খেলোয়াড় থাকবেন এবং অঙ্গভঙ্গির মাধ্যমে বার্তা চালাচালি করবেন।", players: "প্রতি ব্যাচ থেকে ১১ জন।" },
 };
 
-let allParticipantsData = []; 
+// --- Main Execution on DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    buildTimeline();
+    fetchDataAndRender();
+    setupFilterButtons();
+    filterSelection("all");
+});
 
-// Google Sheet থেকে পাওয়া ডেটা প্রসেস করার ফাংশন
-function processFetchedData(rawData) {
-    const participants = [];
-    rawData.forEach(row => {
-        const name = row[SHEET_HEADERS.NAME] || 'N/A';
-        const roll = row[SHEET_HEADERS.ROLL] || 'N/A';
-        const batch = row[SHEET_HEADERS.BATCH_NAME] || 'N/A';
-        const rawEvent = row[SHEET_HEADERS.EVENT_NAME] || 'Unknown';
-        const filterClass = EVENT_NAME_TO_FILTER[rawEvent.trim()] || 'unknown'; 
-        
-        if (name && name.trim() !== '' && filterClass !== 'unknown') {
-             participants.push({ name, roll, batch, eventTag: rawEvent, filterClass });
+/**
+ * Builds the timeline dynamically and highlights the current event.
+ */
+function buildTimeline() {
+    const timelineContainer = document.getElementById('timeline-container');
+    if (!timelineContainer) return;
+    const now = new Date();
+    let activeEventFound = false;
+
+    const timelineHTML = EVENT_SCHEDULE.map((event, index) => {
+        const position = index % 2 === 0 ? 'right' : 'left';
+        const eventClass = event.type === 'break' ? 'break' : '';
+        const startTime = new Date(now.toDateString() + ' ' + event.start);
+        const endTime = new Date(now.toDateString() + ' ' + event.end);
+        let isActive = '';
+        if (!activeEventFound && now >= startTime && now < endTime) {
+            isActive = 'active-event';
+            activeEventFound = true;
         }
-    });
-    return Array.from(new Map(participants.map(p => [`${p.name}-${p.batch}-${p.eventTag}`, p])).values());
+        return `
+            <div class="timeline-item ${position} ${eventClass} ${isActive}">
+                <div class="timeline-content">
+                    <div class="event-time">${event.start} - ${event.end}</div>
+                    <h3 class="event-title">${event.title}</h3>
+                    <p class="event-category">${event.category}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    timelineContainer.innerHTML = timelineHTML;
 }
 
-// অংশগ্রহণকারীদের তালিকা লোড এবং প্রদর্শনের মূল ফাংশন
-async function fetchAndDisplayParticipants() {
-    const grid = document.querySelector('.showcase-grid');
-    if (!grid) return;
-
+/**
+ * Fetches both participant and score data, then renders the showcase.
+ */
+async function fetchDataAndRender() {
+    const grid = document.getElementById('showcase-grid');
     try {
-        if (API_URL === "YOUR_NEW_GOOGLE_APPS_SCRIPT_URL_HERE" || !API_URL) {
-            throw new Error("API URL is not configured. Please deploy the Apps Script and update the URL in landing.js.");
-        }
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        
-        const rawData = await response.json();
-        if (rawData.error) throw new Error(rawData.error);
+        const [participantRes, scoreRes] = await Promise.all([
+            fetch(PARTICIPANT_API_URL),
+            fetch(SCORE_API_URL)
+        ]);
 
-        allParticipantsData = processFetchedData(rawData); 
+        if (!participantRes.ok) throw new Error("Failed to fetch participant data.");
         
-        grid.innerHTML = ''; // লোডিং স্পিনার অপসারণ
-        if(allParticipantsData.length === 0){
-             grid.innerHTML = `<p class="text-center text-muted w-100">এখনো কোনো অংশগ্রহণকারীকে যুক্ত করা হয়নি।</p>`;
+        const participants = await participantRes.json();
+        let scores = { player_leaderboard: [] };
+        if (scoreRes.ok) {
+            const scoreData = await scoreRes.json();
+            if (scoreData.status !== 'unpublished') {
+                scores = scoreData;
+            }
         } else {
-            buildParticipantCards();
+            console.warn("Could not fetch score data. Winner badges will not be shown.");
         }
-        filterSelection("all"); // ডিফল্টভাবে সব ইভেন্ট দেখানো
+        
+        const processedParticipants = mergeWinnerData(participants, scores.player_leaderboard);
+        renderParticipantCards(processedParticipants);
+        filterSelection("all");
 
     } catch (error) {
-        console.error("Could not fetch participant data:", error);
-        grid.innerHTML = `<div class="alert alert-danger w-100 mx-auto mt-4" style="background: #581515; border-color: #ff4d4d; color: #ffacac;" role="alert">
-            <strong>ত্রুটি:</strong> অংশগ্রহণকারীদের তালিকা লোড করা যায়নি। (${error.message})
-        </div>`;
+        console.error("Data fetching error:", error);
+        grid.innerHTML = `<div class="alert alert-danger w-100">ডেটা লোড করা সম্ভব হয়নি।</div>`;
     }
 }
 
-// অংশগ্রহণকারীদের কার্ড তৈরি করার ফাংশন
-function buildParticipantCards() {
-    const grid = document.querySelector('.showcase-grid');
-    grid.innerHTML = allParticipantsData.map(p => `
-        <div class="participant-showcase-card filterDiv ${p.filterClass}">
-            <span class="event-tag">${p.eventTag}</span>
-            <span class="name">${p.name}</span>
-            <span class="batch">${p.batch}</span>
-            <span class="roll">রোল: ${p.roll}</span>
-        </div>
-    `).join('');
-}
-
-// ফিল্টার বাটন ক্লিক করলে কার্ড ও নিয়মাবলী পরিবর্তন করার ফাংশন
-function filterSelection(c) {
-    const eventNameElement = document.getElementById('current-event-name');
-    const rulesContentElement = document.getElementById('event-rules-content');
-    const eventData = EVENT_RULES[c] || EVENT_RULES['all'];
-    
-    let rulesHtml = `
-        <h5 class="mt-4 fw-bold" style="color: var(--text-bright);">বিস্তারিত নিয়মাবলী:</h5>
-        <ul class="list-unstyled">
-            <li><i class="bi bi-info-circle-fill me-2" style="color: var(--brand-light-green);"></i> ${eventData.rules}</li>
-            <li><i class="bi bi-person-circle me-2" style="color: var(--brand-light-green);"></i> অংশগ্রহণের কোটা: ${eventData.players}</li>
-            <li><i class="bi bi-award-fill me-2" style="color: var(--brand-orange);"></i> পয়েন্ট সিস্টেম: ১ম: ১০, ২য়: ৭, ৩য়: ৫ পয়েন্ট।</li>
-        </ul>
-    `;
-    
-    if (eventData.submissionOpen) {
-        rulesHtml += `
-            <hr class="my-4" style="border-color: #333;">
-            <p class="fw-bold mb-2" style="color: var(--brand-orange);">নাম জমা দেওয়ার শেষ সময়: ${SUBMISSION_DEADLINE}</p>
-            <a href="${GOOGLE_FORM_URL}" target="_blank" class="btn btn-primary hero-btn-main">
-                <i class="bi bi-box-arrow-in-right"></i> প্লেয়ারের নাম জমা দিন
-            </a>
-        `;
+/**
+ * Merges winner information from scores into the participant list.
+ */
+function mergeWinnerData(participants, playerScores) {
+    const winnerMap = new Map();
+    if (playerScores && Array.isArray(playerScores)) {
+        playerScores.forEach(player => {
+            const key = `${player.event}-${player.roll}`;
+            if (player.roll && player.position && player.position <= 3) {
+                 winnerMap.set(key, player.position);
+            }
+        });
     }
 
-    eventNameElement.textContent = eventData.name;
-    rulesContentElement.innerHTML = rulesHtml;
-
-    document.querySelectorAll('.filterDiv').forEach(card => {
-        card.classList.remove('visible');
-        if (c === 'all' || card.classList.contains(c)) {
-            card.classList.add('visible');
-        }
+    return participants.map(p => {
+        const filterClass = EVENT_NAME_TO_FILTER[p.EventName.trim()] || 'unknown';
+        const key = `${p.EventName}-${p.Roll}`;
+        const position = winnerMap.get(key);
+        let badge = '';
+        if (position === 1) badge = 'gold';
+        if (position === 2) badge = 'silver';
+        if (position === 3) badge = 'bronze';
+        
+        return { ...p, filterClass, badge };
     });
 }
 
-// পেজ লোড হলে এই ফাংশনগুলো রান হবে
-document.addEventListener('DOMContentLoaded', () => {
-    fetchAndDisplayParticipants(); 
-    
+/**
+ * Renders participant cards to the grid.
+ */
+function renderParticipantCards(participants) {
+    const grid = document.getElementById('showcase-grid');
+    grid.innerHTML = '';
+    if (!participants || participants.length === 0) {
+        grid.innerHTML = `<p class="text-center text-muted w-100">কোনো অংশগ্রহণকারী পাওয়া যায়নি।</p>`;
+        return;
+    }
+    const cardsHTML = participants.map(p => {
+        const badgeHTML = p.badge ? `<span class="winner-badge">${p.badge === 'gold' ? '🥇' : p.badge === 'silver' ? '🥈' : '🥉'}</span>` : '';
+        return `
+            <div class="participant-showcase-card filterDiv ${p.filterClass}" data-roll="${p.Roll}" data-event="${p.EventName}">
+                ${badgeHTML}
+                <span class="event-tag">${p.EventName}</span>
+                <span class="name">${p.Name}</span>
+                <span class="batch">${p.BatchName}</span>
+                <span class="roll">রোল: ${p.Roll}</span>
+            </div>
+        `;
+    }).join('');
+    grid.innerHTML = cardsHTML;
+}
+
+/**
+ * Sets up event listeners for filter buttons.
+ */
+function setupFilterButtons() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             filterButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            const filterValue = button.getAttribute('data-filter');
-            filterSelection(filterValue); 
+            filterSelection(button.getAttribute('data-filter')); 
         });
     });
-});
+}
+
+/**
+ * Filters participant cards and updates the rules display.
+ */
+function filterSelection(c) {
+    const eventNameElement = document.getElementById('current-event-name');
+    const rulesContentElement = document.getElementById('event-rules-content');
+    const eventData = EVENT_RULES[c] || EVENT_RULES['all'];
+    eventNameElement.textContent = eventData.name;
+    rulesContentElement.innerHTML = `
+        <h5 class="mt-4 fw-bold" style="color: var(--text-bright);">বিস্তারিত নিয়মাবলী:</h5>
+        <ul class="list-unstyled">
+            <li><i class="bi bi-info-circle-fill me-2" style="color: var(--brand-light-green);"></i> ${eventData.rules}</li>
+            <li><i class="bi bi-person-circle me-2" style="color: var(--brand-light-green);"></i> অংশগ্রহণের কোটা: ${eventData.players}</li>
+            <li><i class="bi bi-award-fill me-2" style="color: var(--brand-orange);"></i> পয়েন্ট সিস্টেম: ১ম: ১০, ২য়: ৭, ৩য়: ৫ পয়েন্ট। অংশগ্রহণ: ২ পয়েন্ট।</li>
+        </ul>
+    `;
+    document.querySelectorAll('.filterDiv').forEach(card => {
+        card.classList.remove('visible');
+        if (c === 'all' || card.classList.contains(c)) {
+            setTimeout(() => card.classList.add('visible'), 10);
+        }
+    });
+}
